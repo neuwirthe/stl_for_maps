@@ -52,6 +52,13 @@ border <- vect(voeslau_gem)
 border |>
   project("EPSG:31256") ->
   border_31256
+ext(border_31256)
+```
+```{r}
+border |>
+  project("EPSG:4326") ->
+  border_4326
+ext(border_4326)  
 ```
 
 ```{r}
