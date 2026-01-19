@@ -55,13 +55,10 @@ border |>
 ```
 
 ```{r}
-noe_raster_4326 <-
+noe_raster_31256 <-
 rast(path(here(),"raster_data", "gelaende",
           "niederoesterreich","noe_raster_10m_31256.tif"))  
   
-```
-```{r}
-border
 ```
 
 ```{r}
@@ -74,7 +71,61 @@ voeslau_raster |>
 ```{r}
 voeslau_raster |>
   writeRaster(path(here(),"for_stl",
-                   "voeslau_gelaende.tif"))
+                   "voeslau_gelaende.tif"),
+              overwrite=TRUE)
 ```
 
+Peojektion braucht mehrere Minuten
+
+```{r}
+rast(path(here(), "raster_data", "oberflaeche", "oesterreich",
+          "ALS_DTM_CRS3035RES50000mN2750000E4750000.tif")) ->
+  noe_31259
+```
+
+```{r}
+noe_31259 |> 
+  crs() |>
+  cat()
+```
+
+```{r}
+noe_31259 |>
+  project("EPSG:31256") ->
+  noe_raster_31256
+```
+
+```{r}
+noe_raster_31256 |> 
+  crs() |>
+  cat()
+```
+
+
+
+
+
+
+```{r}
+r_crop <- crop(noe_raster_31256,border_31256)
+voeslau_ober <- mask(r_crop,border_31256)
+voeslau_ober |>
+  plot()
+```
+```{r}
+e <- ext(-8000,-7000,314000,315000)
+voes_1 <-
+  crop(voeslau_ober,e)
+```
+```{r}
+voes_1 |>
+  plot()
+```
+```{r}
+voes_1 |>
+  writeRaster(path(here(),"for_stl",
+                   "voes_1.tif"),
+              overwrite=TRUE
+  )
+```
 
