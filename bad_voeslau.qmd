@@ -1,0 +1,80 @@
+---
+title: "Bad Vöslau"
+format: html
+editor: source
+---
+
+
+
+```{r}
+suppressPackageStartupMessages({
+  library(tidyverse)
+  library(readxl)
+  library(scales)
+  library(fs)
+  library(here)
+  library(sf)
+  library(curl)
+  library(terra)
+  library(rmapshaper)
+})
+```
+
+```{r}
+load(path(here(),"vector_data", "verwaltungsgrenzen",
+          "verwaltungsgrenzen_50.RData"))
+```
+
+```{r}
+verwaltungsgrenzen_50 |>
+  names()
+```
+
+```{r}
+verwaltungsgrenzen_50 |>
+  filter(PG=="Bad Vöslau") ->
+  kat_voeslau
+```
+
+```{r}
+verwaltungsgrenzen_50 |>
+  filter(PG=="Bad Vöslau") |>
+  group_by(GKZ) |>
+  summarise(geometry=st_union(geometry)) ->
+  voeslau_gem
+```
+
+```{r}
+border <- vect(voeslau_gem)
+```
+
+```{r}
+border |>
+  project("EPSG:31256") ->
+  border_31256
+```
+
+```{r}
+noe_raster_4326 <-
+rast(path(here(),"raster_data", "gelaende",
+          "niederoesterreich","noe_raster_10m_31256.tif"))  
+  
+```
+```{r}
+border
+```
+
+```{r}
+r_crop <- crop(noe_raster_31256,border_31256)
+voeslau_raster <- mask(r_crop, border_31256)
+voeslau_raster |>
+  plot()
+```
+
+```{r}
+voeslau_raster |>
+  writeRaster(path(here(),"for_stl",
+                   "voeslau_gelaende.tif"))
+```
+
+
