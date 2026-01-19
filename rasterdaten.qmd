@@ -1,0 +1,249 @@
+---
+title: "rasterdaten"
+format: html
+editor: source
+---
+
+
+
+```{r}
+suppressPackageStartupMessages({
+  library(tidyverse)
+  library(readxl)
+  library(scales)
+  library(fs)
+  library(here)
+  library(sf)
+  library(curl)
+  library(terra)
+  library(rmapshaper)
+})
+```
+
+
+## ACHTUNG
+
+Das herunterladen und projizieren der Daten kann ziemlich lange dauern.
+Einige Viertelstunden sind möglich
+
+### Information Koordinatensysteme 
+
+	•	WGS 84 (EPSG:4326) – global, Längen/Breiten
+	•	ETRS89 / UTM Zone 33N (EPSG:25833) – metrisch, oft für Mitteleuropa
+	•	MGI / Austria GK East (EPSG:31256) – klassisches österreichisches metrisches System
+Ein typischer PROJ‑String (neuere PROJ‑Syntax) für diese CRS wäre zum Beispiel:
+	•	WGS 84: "+proj=longlat +datum=WGS84 +no_defs +type=crs"
+	•	ETRS89 / UTM 33N" +proj=utm +zone=33 +ellps=GRS80 +units=m +no_defs +type=crs"
+	•	MGI / Austria GK East:"+proj=tmerc +lat_0=0 +lon_0=16.3333333333333 +k=1 +x_0=0 +y_0=0 +ellps=bessel +towgs84=577.326,90.129,463.919,5.137,1.474,5.297,2.4232 +units=m +no_defs +type=crs"
+Der „Center“ von Bad Vöslau (ungefähr) steckt dann nur in deinen Daten; der PROJ‑String selbst ändert sich dadurch nicht. In terra würdest du z.B.:
+
+Für EPSG:31256 (MGI / Austria GK East) ist der „Nullpunkt“ der Gauß‑Krüger‑Abbildung wie folgt zu verstehen:
+	•	Die Projektion ist eine Transversale Mercator mit
+	•	Bezugsmeridian  östlich von Greenwich.
+	•	Breite des Ursprungs  (Äquator).
+	•	Es gibt keinen False Easting, also x=0m
+	•	Der False Northing ist -5.000.000 m. Äquator bei -5.000.000 m
+
+Wenn du mit „Nullpunkt“ die Stelle meinst, an der in der Ebene  und  ist, dann liegt dieser Punkt auf dem Bezugsmeridian  irgendwo auf der Südhalbkugel, weil die Nordwerte um 5 Mio. Meter nach Süden verschoben sind; in Österreich selbst treten nur Nordwerte um etwa  um 5  Mio. m auf.	
+	
+```
+Projektion für Österreich
+library(terra)
+r <- rast(...)
+crs(r) <- "+proj=utm +zone=33 +ellps=GRS80 +units=m +no_defs +type=crs"
+```
+verwenden, wenn dein Raster bereits in ETRS89 / UTM 33N vorliegt.
+
+
+## Digitales Geländemodell 1m Höhenauflösung
+
+Österreich 10m
+Digitales 10m - Geländemodell aus Airborne Laserscan Daten in der Projektion EPSG:31287 (Lambert)
+
+
+```{r}
+all_raster_exist <-
+  file_exists(path(here(),"raster_data", "gelaende", "oesterreich", "ogd-10m-at",
+          "dhm_at_lamb_10m_2018.tif")) &&
+  file_exists(path(here(),"raster_data", "gelaende", "oesterreich","oest_raster_10m_4326.tif")) &&
+  file_exists(path(here(),"raster_data", "gelaende", "oesterreich","oest_raster_10m_31256.tif"))
+```
+
+
+
+```{r}
+if(!all_raster_exist){
+  dir_create(path(here(), "raster_data", "gelaende", "oesterreich",
+                  "ogd-10m-at"))
+}
+```
+
+```{r}
+if(!all_raster_exist){
+curl_download(
+  "https://gis.ktn.gv.at/OGD/Geographie_Planung/ogd-10m-at.zip",
+  path(here(), "raster_data", "gelaende", "oesterreich","ogd-10m-at.zip"),
+  quiet=FALSE
+)
+}  
+```
+
+Falls notwendig manueller download
+https://gis.ktn.gv.at/OGD/Geographie_Planung/ogd-10m-at.zip
+z.B. mit wget
+
+und hier speichern 
+stl-from-maps/raster_data/gelaende/oesterreich/ogd-10m-at.zip
+
+
+```{r}
+if(!all_raster_exist){
+unzip(path(here(), "raster_data", "gelaende", "oesterreich","ogd-10m-at.zip"),
+      exdir=path(here(), "raster_data", "gelaende", "oesterreich","ogd-10m-at")
+)
+}
+```
+
+
+```{r}
+if(!all_raster_exist){
+oest_raster <- rast(path(here(),"raster_data", "gelaende", "oesterreich", "ogd-10m-at",
+          "dhm_at_lamb_10m_2018.tif"))
+}
+```
+
+```{r}
+if(!all_raster_exist){
+project(oest_raster,"EPSG:4326") ->
+  oest_raster_4326
+writeRaster(oest_raster_4326,
+            path(here(), "raster_data", "gelaende", "oesterreich",
+                 "oest_raster_10m_4326.tif"),
+            overwrite=TRUE
+)
+}
+```
+
+
+```{r}
+if(!all_raster_exist){
+project(oest_raster,"EPSG:31256") ->
+  oest_raster_31256
+writeRaster(oest_raster_31256,
+            path(here(), "raster_data", "gelaende", "oesterreich",
+                 "oest_raster_10m_31256.tif"),
+            overwrite=TRUE
+)
+}  
+```
+
+
+
+
+
+## Oberflächenmodell Österreich
+
+https://www.bev.gv.at/Services/Produkte/Digitales-Oberflaechenmodell/Digitales-Oberflaechenmodell.html
+
+https://data.bev.gv.at/geonetwork/srv/ger/catalog.search#/search?isTemplate=n&resourceTemporalDateRange=%7B%22range%22:%7B%22resourceTemporalDateRange%22:%7B%22gte%22:null,%22lte%22:null,%22relation%22:%22intersects%22%7D%7D%7D&sortBy=creationDateForResource&sortOrder=desc&from=1&to=100&any=ALS%20DSM%20Höhenraster%201m
+
+
+
+Österreich Oberfläche Kacheln siehe
+`ALS_Kacheluebersicht.pdf`
+
+```{r}
+curl_download("https://data.bev.gv.at/download/ALS/ALS_Kacheluebersicht.pdf",
+              path(here(),"raster_data", "oberflaeche",
+                   "ALS_Kacheluebersicht.pdf"))
+```
+
+https://data.bev.gv.at/download/ALS/ALS_Kacheluebersicht.pdf
+
+
+typisch:
+
+
+
+https://data.bev.gv.at/download/ALS/DTM/20240915/ALS_DTM_CRS3035RES50000mN2800000E4800000.tif
+
+https://data.bev.gv.at/download/ALS/DTM/20240915/ALS_DTM_CRS3035RES50000mN2750000E4750000.tif
+
+https://data.bev.gv.at/download/ALS/DTM/20240915/ALS_DTM_CRS3035RES50000mN2750000E4800000.tif
+
+https://data.bev.gv.at/download/ALS/DTM/20240915/ALS_DTM_CRS3035RES50000mN2800000E4750000.tif
+
+
+Beispiel
+4 Kacheln Wien und Süden von Wien
+
+Die einzelnen files sind groß ~ 10GB
+Download dauert je mehrere Minuten
+
+
+```{r}
+dir_create(path(here(), "raster_data", "oberflaeche", "oesterreich"))
+curl_download(
+"https://data.bev.gv.at/download/ALS/DTM/20240915/ALS_DTM_CRS3035RES50000mN2800000E4800000.tif",
+  path(here(), "raster_data", "oberflaeche", "oesterreich",
+       "ALS_DTM_CRS3035RES50000mN2800000E4800000.tif"),
+  quiet=FALSE
+)
+curl_download(
+"https://data.bev.gv.at/download/ALS/DTM/20240915/ALS_DTM_CRS3035RES50000mN2800000E4750000.tif",
+  path(here(), "raster_data", "oberflaeche", "oesterreich",
+       "ALS_DTM_CRS3035RES50000mN2800000E4750000.tif"),
+  quiet=FALSE
+)
+curl_download(
+"https://data.bev.gv.at/download/ALS/DTM/20240915/ALS_DTM_CRS3035RES50000mN2750000E4800000.tif",
+  path(here(), "raster_data", "oberflaeche", "oesterreich",
+       "ALS_DTM_CRS3035RES50000mN2750000E4800000.tif"),
+  quiet=FALSE
+)
+curl_download(
+"https://data.bev.gv.at/download/ALS/DTM/20240915/ALS_DTM_CRS3035RES50000mN2750000E4750000.tif",
+  path(here(), "raster_data", "oberflaeche", "oesterreich",
+       "ALS_DTM_CRS3035RES50000mN2750000E4750000.tif"),
+  quiet=FALSE
+)
+```
+
+
+## Wien Oberflächenmodell
+
+https://www.wien.gv.at/MA41datenviewer/public/
+Kacheln  auswählen
+
+Beispiel 1. Bezirk
+
+```{r}
+dir_create(path(here(), "raster_data", "oberflaeche", "wien"))
+curl_download(
+"https://www.wien.gv.at/MA41datenviewer/downloads/geodaten/dom_tif/35_3_dom_tif.zip",
+path(here(), "raster_data", "oberflaeche", "wien",
+     "35_3_dom_tif.zip"),
+quiet=FALSE
+)
+unzip(path(here(), "raster_data", "oberflaeche", "wien",
+     "35_3_dom_tif.zip"),
+     exdir =path(here(), "raster_data", "oberflaeche", "wien")
+)
+curl_download(
+"https://www.wien.gv.at/MA41datenviewer/downloads/geodaten/dom_tif/35_4_dom_tif.zip",
+path(here(), "raster_data", "oberflaeche", "wien",
+     "35_4_dom_tif.zip"),
+quiet=FALSE
+)
+unzip(path(here(), "raster_data", "oberflaeche", "wien",
+     "35_4_dom_tif.zip"),
+     exdir =path(here(), "raster_data", "oberflaeche", "wien")
+)
+```
+
+Auf Gebiet (Kachel) doppelklichen
+zip herunterladen
+
+Gezippte Kachern in `path(here(), "raster_data", "oberflaeche", "wien")`
+und entzippen
+

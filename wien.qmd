@@ -1,0 +1,100 @@
+---
+title: "wien"
+format: html
+editor: source
+---
+
+
+```{r}
+suppressPackageStartupMessages({
+  library(tidyverse)
+  library(readxl)
+  library(scales)
+  library(fs)
+  library(here)
+  library(sf)
+  library(terra)
+  library(rmapshaper)
+})
+```
+
+```{r}
+load(path(here(),"vector_data", "verwaltungsgrenzen", "verwaltungsgrenzen_50.RData"))
+```
+
+
+```{r}
+wien_borders <-
+  st_read(
+    path(here(),"vector_data", "verwaltungsgrenzen", "BEZIRKSGRENZEOGD",
+    "BEZIRKSGRENZEOGDPolygon.shp"))
+```
+```{r}
+erster_border |>
+  filter(BEZNR==1) |>
+  st_write("erster.shp")
+```
+
+
+```{r}
+erster <- vect("erster.shp") |>
+  project("EPSG:31256")
+erster |> plot()
+```
+
+```{r}
+verwaltungsgrenzen_50 |>
+  filter(BKZ=="900") |>
+  pull()
+  
+  group_by(GKZ) |>
+  summarise(geometry=st_union(geometry)) ->
+  wien_erster_shp
+st_write(wien_erster_shp,"wien_erster.shp")
+```
+
+
+
+```{r}
+wien_border_raw <-
+  vect("wien_erster.shp")
+project(wien_border_raw,"EPSG:31256") ->
+  wien_border
+```
+```{r}
+wien_b
+```
+
+```{r}
+wien_353 <-
+  rast(path(here(),"raster_data", "oberflaeche", "wien", "35_3_dom.tif"))
+wien_354 <-
+  rast(path(here(),"raster_data", "oberflaeche", "wien", "35_4_dom.tif"))
+```
+
+```{r}
+wien_erster_raw <-
+  merge(wien_353, wien_354) |>
+#  project("EPSG:4326")
+  project("EPSG:31256")
+crs(wien_erster_raw)
+```
+
+```{r}
+wien_erster_raw |>
+  plot()
+```
+
+
+```{r}
+r_crop <- crop(wien_erster_raw,erster)
+r_crop |> plot()
+erster_for_stl <- mask(r_crop,erster)
+erster_for_stl |> plot()
+```
+```{r}
+dir_create(path(here(), "stl"))
+erster_for_stl |>
+writeRaster(path(here(),"stl", "erster_for_stl.tif"))
+```
+

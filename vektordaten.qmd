@@ -1,0 +1,263 @@
+---
+title: "Vektordaten"
+format: html
+editor: source
+---
+
+
+
+```{r}
+suppressPackageStartupMessages({
+  library(tidyverse)
+  library(readxl)
+  library(scales)
+  library(fs)
+  library(here)
+  library(sf)
+  library(terra)
+  library(rmapshaper)
+})
+```
+
+
+## Verwaltungsgrenzen Österreich
+
+Katastralgemeinden
+Gemeinden
+Bezirke
+Bundesländer
+
+### Auflösung 1:50.000
+
+```{r}
+curl_download(
+  "https://nextcloud.bev.gv.at/nextcloud/public.php/dav/files/4cPaobJc73GqC3s",
+path(here(),"vector_data", "verwaltungsgrenzen", "oesterreich",
+     "VGD-Oesterreich_gen_50_01.04.2021.zip"
+     ),
+quiet=FALSE)
+```
+/Users/neuwirth/Sites/stl-from-maps/vector_data/verwaltungsgrenzen/VGD-Oesterreich_gen_50_01.04.2021.zip
+
+
+
+Falls das nicht klappt
+Manueller Download
+von
+
+https://nextcloud.bev.gv.at/nextcloud/public.php/dav/files/4cPaobJc73GqC3s/?accept=zip
+Kopiere VGD-Oesterreich_gen_50_01.04.2021.zip 
+nach vector_data/verwaltungsgrenzen
+
+fein
+
+
+https://nextcloud.bev.gv.at/nextcloud/s/gk56gezftSatKQt?opendetails=
+
+manuell im folder enzippen
+sollte dort liegen:
+
+/Users/neuwirth/Sites/stl-from-maps/vector_data/verwaltungsgrenzen/oesterreich/VGD-Oesterreich_gen_50_01.04.2021.zip
+
+7zip sollte installiert sein
+
+```{r}
+system("which 7z", ignore.stderr=TRUE, ignore.stdout = TRUE) -> res
+if(res == 1){
+  cat("7zip muss installiert werden\n") 
+} else {
+  cat("7zip bzw 7z gefunden")
+}
+```
+
+
+```{r}
+zipfile <- path(here(),"vector_data", "verwaltungsgrenzen", "oesterreich",
+     "VGD-Oesterreich_gen_50_01.04.2021.zip"
+     )
+outdir  <- path(here(),"vector_data", "verwaltungsgrenzen", "oesterreich",
+                "VGD-Oesterreich_gen_50_01")
+dir.create(outdir, showWarnings = FALSE)
+system2("7z", c("x", zipfile, paste0("-o", outdir), "-aoa"))
+```
+/Users/neuwirth/Sites/stl-from-maps/vector_data/verwaltungsgrenzen/VGD-Oesterreich_gen_50_01.04.2021
+
+
+```{r}
+st_read(
+  path(here(), "vector_data", "verwaltungsgrenzen", "oesterreich",
+             "VGD-Oesterreich_gen_50_01",
+       "VGD_Österreich_gen_50.shp")) ->
+  verwaltungsgrenzen_50
+verwaltungsgrenzen_50 |>
+save(file=
+  path(here(), "vector_data", "verwaltungsgrenzen",
+       "verwaltungsgrenzen_50.RData")
+)
+```
+
+### Auflösung 1:250.000
+
+```{r}
+curl_download(
+  "https://nextcloud.bev.gv.at/nextcloud/public.php/dav/files/gk56gezftSatKQt",
+path(here(),"vector_data", "verwaltungsgrenzen", "oesterreich",
+     "VGD-Oesterreich_gen_250_01.zip"
+     ),
+quiet=FALSE)
+```
+/Users/neuwirth/Sites/stl-from-maps/vector_data/verwaltungsgrenzen/VGD-Oesterreich_gen_50_01.04.2021.zip
+
+
+
+Falls nicht heruntergeladen manueller download von
+
+https://nextcloud.bev.gv.at/nextcloud/public.php/dav/files/gk56gezftSatKQt/?accept=zip
+ und verschieben des zip files nach
+
+/Users/neuwirth/Sites/stl-from-maps/vector_data/verwaltungsgrenzen/oesterreich/VGD-Oesterreich_gen_250_01.zip
+
+
+```{r}
+zipfile <- path(here(),"vector_data", "verwaltungsgrenzen", "oesterreich",
+     "VGD-Oesterreich_gen_250_01.zip"
+     )
+outdir  <- path(here(),"vector_data", "verwaltungsgrenzen", "oesterreich",
+                "VGD-Oesterreich_gen_250_01")
+dir.create(outdir, showWarnings = FALSE)
+system2("7z", c("x", zipfile, paste0("-o", outdir), "-aoa"))
+```
+
+
+
+```{r}
+st_read(
+  path(here(), "vector_data", "verwaltungsgrenzen", "oesterreich",
+             "VGD-Oesterreich_gen_250_01",
+       "VGD_Österreich_gen_250.shp")) ->
+  verwaltungsgrenzen_250
+verwaltungsgrenzen_250 |>
+save(file=
+  path(here(), "vector_data", "verwaltungsgrenzen",
+       "verwaltungsgrenzen_250.RData")
+)
+```
+
+
+## Bezirksgrenzen Wien
+
+```{r}
+curl_download(
+  "https://data.wien.gv.at/daten/geo?service=WFS&request=GetFeature&version=1.1.0&typeName=%20ogdwien:BEZIRKSGRENZEOGD&srsName=EPSG:31256&outputFormat=shape-zip",
+path(here(), "vector_data", "verwaltungsgrenzen", "wien", "BEZIRKSGRENZEOGD.zip")
+)
+```
+
+
+
+Falls download nicht klappt
+
+Folgendes link
+https://data.wien.gv.at/daten/geo?service=WFS&request=GetFeature&version=1.1.0&typeName=
+ogdwien:BEZIRKSGRENZEOGD&srsName=EPSG:31256&outputFormat=shape-zip
+
+in den Browser eingeben
+
+Dann verschieben in
+path(here(), "vector_data", "verwaltungsgrenzen", "wien", "BEZIRKSGRENZEOGD")
+
+Falls notwendig dort entzippen
+Dort sollte es dann die Datei
+BEZIRKSGRENZEOGDPolygon.shp
+geben
+
+
+```{r}
+zipfile <- path(here(),"vector_data", "verwaltungsgrenzen", "wien",
+     "BEZIRKSGRENZEOGD.zip"
+     )
+outdir  <- path(here(),"vector_data", "verwaltungsgrenzen", "wien",
+                "BEZIRKSGRENZEOGD")
+dir.create(outdir, showWarnings = FALSE)
+
+system2("7z", c("x", zipfile, paste0("-o", outdir), "-aoa"))
+```
+
+
+```{r}
+st_read(
+  path(here(), "vector_data", "verwaltungsgrenzen", "wien",
+             "BEZIRKSGRENZEOGD", 
+       "BEZIRKSGRENZEOGDPolygon.shp")) ->
+  wien_bezirke
+wien_bezirke |>
+save(file=
+  path(here(), "vector_data", "verwaltungsgrenzen",
+       "wien_bezirke.RData")
+)
+```
+
+# Beispiele
+
+
+```{r}
+load(
+  path(here(), "vector_data", "verwaltungsgrenzen", "verwaltungsgrenzen_250.RData")
+)
+verwaltungsgrenzen_250 |>
+  names()
+```
+Beispiel Zusammenfassung zu Gemeinden
+
+```{r}
+verwaltungsgrenzen_250 |>
+  group_by(GKZ) |>
+  summarise(geometry=st_union(geometry)) ->
+  gemeinden
+```
+
+
+```{r}
+ggplot(gemeinden) +
+  geom_sf()
+```
+
+
+```{r}
+verwaltungsgrenzen_250 |>
+  group_by(BKZ) |>
+  summarise(geometry=st_union(geometry)) ->
+  bezirke
+  ggplot(bezirke) +
+  geom_sf()
+```
+
+```{r}
+bezirke_simple <- ms_simplify(
+  bezirke,
+  keep        = 0.015,   # Anteil der Punkte behalten (0–1)
+  keep_shapes = TRUE   # kleine Polygone nicht ganz entfernen
+)
+```
+
+
+
+```{r}
+ggplot(bezirke_simple) +
+  geom_sf()
+```
+
+```{r}
+load(
+  path(here(), "vector_data", "verwaltungsgrenzen", "wien_bezirke.RData")
+)
+wien_bezirke |>
+  names()
+```
+
+```{r}
+wien_bezirke |>
+  ggplot() +
+  geom_sf()
+```
+

@@ -1,0 +1,61 @@
+---
+title: "setup"
+format: html
+editor: source
+---
+
+```{r}
+install_if_needed <- function(pkg){
+if (!requireNamespace(pkg, quietly = TRUE)) {
+  install.packages(pkg)
+}
+}
+```
+
+```{r}
+pkgs <-
+c(
+  "tidyverse",
+ "readxl",
+ "scales",
+ "fs",
+ "here",
+ "sf",
+ "curl",
+ "terra",
+ "rmapshaper"
+)
+```
+
+```{r}
+install_if_needed(pkgs)
+```
+
+```{r}
+library(fs)
+```
+
+```{r}
+dir_create(
+  path(here(), "vector_data", "verwaltungsgrenzen", "oesterreich"))
+dir_create(
+  path(here(), "vector_data", "verwaltungsgrenzen", "wien"))
+dir_create(
+  path(here(), "raster_data", "oberflaeche", "wien")) 
+dir_create(
+  path(here(), "raster_data", "oberflaeche", "oesterreich")) 
+dir_create(
+  path(here(), "raster_data", "gelaende", "oesterreich")) 
+dir_create(
+  path(here(), "raster_data", "gelaende", "niederoesterreich")) 
+```
+
+```{r}
+txt <-
+  c("Manche Dateien sind mit codepage 437 kodiert\n",
+    "auf Mac oder Linux muss deswegen 7zip installier sein\n",
+    "ich mache das mit\n",
+    "brew install 7zip\n",
+    "im Terminal")
+cat(txt)
+```

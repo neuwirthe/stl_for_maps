@@ -1,0 +1,57 @@
+---
+title: "Gemeinden und Katastralgemeinden"
+format: html
+editor: source
+---
+
+
+
+```{r}
+suppressPackageStartupMessages({
+  library(tidyverse)
+  library(readxl)
+  library(scales)
+  library(fs)
+  library(here)
+  library(sf)
+  library(terra)
+  library(rmapshaper)
+})
+```
+
+### Bad Vöslau
+
+```{r}
+load(path(here(), "vector_data", "verwaltungsgrenzen", "verwaltungsgrenzen_50.RData"))
+```
+
+```{r}
+verwaltungsgrenzen_50 |>
+  filter(PG=="Bad Vöslau") |>
+  group_by(GKZ) |>
+  summarise(geometry=st_union(geometry)) ->
+  voeslau
+
+
+crs(verwaltungsgrenzen_50) |>
+  cat()
+crs(voeslau) |>
+  cat()
+```
+
+```{r}
+voeslau |>
+  ggplot() +
+  geom_sf()
+```
+
+```{r}
+oest_raster <- rast(path(here(),"raster_data", "gelaende", "oesterreich", "ogd-10m-at",
+          "dhm_at_lamb_10m_2018.tif"))
+```
+
+```{r}
+project(oest_raster,"EPSG:4326") ->
+  oest_4326
+```
+
