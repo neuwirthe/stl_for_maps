@@ -102,27 +102,32 @@ noe_ober_31259 |>
 ```{r}
 noe_ober_31259 |>
   project("EPSG:31256") ->
-  noe_raster_31256
+  noe_ober_31256
+work_dir <- path(here(),"raster_data","oberflaeche","work")
+dir_create(work_dir)
+writeRaster(noe_ober_31256,
+            path(work_dir,
+                 "noe_ober_31256.tif"))
 ```
 
 ```{r}
-noe_raster_31256 |> 
+noe_ober_31256 |> 
   crs() |>
   cat()
 ```
 
 
 
-
-
-
 ```{r}
-r_crop <- crop(noe_raster_31256,border_31256)
+r_crop <- crop(noe_ober_31256,border_31256)
 voeslau_ober <- mask(r_crop,border_31256)
 voeslau_ober |>
-  plot()
+  writeRaster(path(work_dir,"voeslau_ober.tif"))
 ```
-```{r}
+
+
+
+```{}
 e <- ext(-8000,-7000,314000,315000)
 voes_1 <-
   crop(voeslau_ober,e)

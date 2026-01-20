@@ -23,7 +23,9 @@ c(
  "sf",
  "curl",
  "terra",
- "rmapshaper"
+ "rmapshaper",
+ "tictoc"
+ 
 )
 ```
 
