@@ -17,6 +17,7 @@ suppressPackageStartupMessages({
   library(curl)
   library(terra)
   library(rmapshaper)
+  library(tictoc)
 })
 ```
 
@@ -55,9 +56,8 @@ crs(r) <- "+proj=utm +zone=33 +ellps=GRS80 +units=m +no_defs +type=crs"
 verwenden, wenn dein Raster bereits in ETRS89 / UTM 33N vorliegt.
 
 
-## Digitales Geländemodell 1m Höhenauflösung
+## Digitales Geländemodell 
 
-### Österreich 10m
 Digitales 10m - Geländemodell aus Airborne Laserscan Daten in der Projektion EPSG:31287 (Lambert)
 
 
@@ -71,6 +71,8 @@ all_raster_exist <-
   file_exists(path(here(),"raster_data", "gelaende", "niederoesterreich","oest_raster_10m_4326.tif"))   
 ```
 
+
+### Österreich 10m
 
 
 ```{r}
@@ -217,7 +219,9 @@ https://data.bev.gv.at/geonetwork/srv/ger/catalog.search#/search?isTemplate=n&re
 
 
 
-Österreich Oberfläche Kacheln siehe
+# Österreich Gelände 1m 
+
+Kacheln siehe
 `ALS_Kacheluebersicht.pdf`
 
 ```{r}
@@ -250,32 +254,81 @@ Download dauert je mehrere Minuten
 
 
 ```{r}
-dir_create(path(here(), "raster_data", "oberflaeche", "oesterreich"))
+dir_create(path(here(), "raster_data", "gelaende", "oesterreich"))
 curl_download(
 "https://data.bev.gv.at/download/ALS/DTM/20240915/ALS_DTM_CRS3035RES50000mN2800000E4800000.tif",
-  path(here(), "raster_data", "oberflaeche", "oesterreich",
+  path(here(), "raster_data", "oberflaeche", "oesterreich", "ALS_DTM_1m",
        "ALS_DTM_CRS3035RES50000mN2800000E4800000.tif"),
   quiet=FALSE
 )
 curl_download(
 "https://data.bev.gv.at/download/ALS/DTM/20240915/ALS_DTM_CRS3035RES50000mN2800000E4750000.tif",
-  path(here(), "raster_data", "oberflaeche", "oesterreich",
+  path(here(), "raster_data", "oberflaeche", "oesterreich", "ALS_DTM_1m",
        "ALS_DTM_CRS3035RES50000mN2800000E4750000.tif"),
   quiet=FALSE
 )
 curl_download(
 "https://data.bev.gv.at/download/ALS/DTM/20240915/ALS_DTM_CRS3035RES50000mN2750000E4800000.tif",
-  path(here(), "raster_data", "oberflaeche", "oesterreich",
+  path(here(), "raster_data", "oberflaeche", "oesterreich", "ALS_DTM_1m",
        "ALS_DTM_CRS3035RES50000mN2750000E4800000.tif"),
   quiet=FALSE
 )
 curl_download(
 "https://data.bev.gv.at/download/ALS/DTM/20240915/ALS_DTM_CRS3035RES50000mN2750000E4750000.tif",
-  path(here(), "raster_data", "oberflaeche", "oesterreich",
+  path(here(), "raster_data", "oberflaeche", "oesterreich", "ALS_DTM_1m",
        "ALS_DTM_CRS3035RES50000mN2750000E4750000.tif"),
   quiet=FALSE
 )
 ```
+
+Ich hole mit wget diese Dateien
+
+https://data.bev.gv.at/download/ALS/DSM/20240915/ALS_DSM_CRS3035RES50000mN2800000E4800000.tif
+https://data.bev.gv.at/download/ALS/DSM/20240915/ALS_DSM_CRS3035RES50000mN2800000E4800000.tif
+https://data.bev.gv.at/download/ALS/DSM/20240915/ALS_DSM_CRS3035RES50000mN2800000E4800000.tif
+https://data.bev.gv.at/download/ALS/DSM/20240915/ALS_DSM_CRS3035RES50000mN2800000E4800000.tif
+
+
+und verschiebe sie nach raster_data/oberflaeche/oesterreich
+
+Die Variante in nächsten codeblock
+funktioniert nur theoretisch
+
+```{r}
+tic()
+dir_create(path(here(), "raster_data", "oberflaeche", "oesterreich"))
+curl_download(
+"https://data.bev.gv.at/download/ALS/DSM/20240915/ALS_DSM_CRS3035RES50000mN2800000E4800000.tif",
+  path(here(), "raster_data", "oberflaeche", "oesterreich",
+       "ALS_DSM_CRS3035RES50000mN2800000E4800000.tif"),
+  quiet=FALSE
+)
+toc()
+tic()
+curl_download(
+"https://data.bev.gv.at/download/ALS/DSM/20240915/ALS_DSM_CRS3035RES50000mN2800000E4750000.tif",
+  path(here(), "raster_data", "oberflaeche", "oesterreich",
+       "ALS_DSM_CRS3035RES50000mN2800000E4750000.tif"),
+  quiet=FALSE
+)
+curl_download(
+"https://data.bev.gv.at/download/ALS/DSM/20240915/ALS_DSM_CRS3035RES50000mN2750000E4800000.tif",
+  path(here(), "raster_data", "oberflaeche", "oesterreich",
+       "ALS_DSM_CRS3035RES50000mN2750000E4800000.tif"),
+  quiet=FALSE
+)
+toc()
+tic()
+curl_download(
+"https://data.bev.gv.at/download/ALS/DSM/20240915/ALS_DSM_CRS3035RES50000mN2750000E4750000.tif",
+  path(here(), "raster_data", "oberflaeche", "oesterreich",
+       "ALS_DSM_CRS3035RES50000mN2750000E4750000.tif"),
+  quiet=FALSE
+)
+toc()
+```
+
+
 
 
 ## Wien Oberflächenmodell

@@ -197,6 +197,20 @@ save(file=
 )
 ```
 
+
+## Verwaltungsgrenzen Wien 
+
+enthält Wiener Grenzen in 3 verschiedene Auflösungen
+
+```{r}
+curl_download(
+  "https://nextcloud.bev.gv.at/nextcloud/public.php/dav/files/yc7BpiibREyFrqH",
+  path(here(), "vector_data", "verwaltungsgrenzen", "wien",
+       "VGD-Wien.zip")
+)
+```
+
+
 # Beispiele
 
 

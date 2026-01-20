@@ -22,6 +22,10 @@ suppressPackageStartupMessages({
 ```
 
 ```{r}
+source(path(here(),"utils","utils.R"))
+```
+
+```{r}
 load(path(here(),"vector_data", "verwaltungsgrenzen",
           "verwaltungsgrenzen_50.RData"))
 ```
@@ -54,12 +58,15 @@ border |>
   project("EPSG:31256") ->
   border_31256
 ext(border_31256)
+crs(border_31256, describe=TRUE)
 ```
+
 ```{r}
 border |>
   project("EPSG:4326") ->
   border_4326
-ext(border_4326)  
+ext(border_4326) 
+crs(border_4326,describe=TRUE)
 ```
 ## Gelände
 
@@ -90,14 +97,12 @@ Projektion braucht mehrere Minuten
 
 ```{r}
 rast(path(here(), "raster_data", "oberflaeche", "oesterreich",
-          "ALS_DTM_CRS3035RES50000mN2750000E4750000.tif")) ->
+          "ALS_DSM_CRS3035RES50000mN2750000E4750000.tif")) ->
   noe_ober_31259
 ```
 
 ```{r}
-noe_ober_31259 |> 
-  crs() |>
-  cat()
+  crs(noe_ober_31259,describe=TRUE)
 ```
 
 ```{r}
@@ -111,14 +116,13 @@ dir_create(work_dir)
 tic()
 writeRaster(noe_ober_31256,
             path(work_dir,
-                 "noe_ober_31256.tif"))
+                 "noe_ober_31256.tif"),
+            overwrite=TRUE)
 toc()
 ```
 
 ```{r}
-noe_ober_31256 |> 
-  crs() |>
-  cat()
+crs(noe_ober_31256, describe=TRUE)  
 ```
 
 
@@ -128,26 +132,44 @@ tic()
 r_crop <- crop(noe_ober_31256,border_31256)
 voeslau_ober <- mask(r_crop,border_31256)
 voeslau_ober |>
-  writeRaster(path(work_dir,"voeslau_ober.tif"))
+  writeRaster(path(work_dir,"voeslau_ober.tif"),
+              overwrite=TRUE)
+toc()
+```
+```{r}
+voeslau_ober |> plot()
+```
+
+
+
+```{r}
+c(16.207, 47.96 ) |>
+  wgs2aut() -> xx
+xx
+c(xx,xx+1000) -> xx
+  ext(xx[1],xx[3],xx[2],xx[4]) ->
+    kachel_ext
+```
+```{r}
+tic()
+voeslau_ober |>
+   crop(kachel_ext) ->
+  voes_kachel_home
+voes_kachel_home |>
+writeRaster(path(here(),"for_stl", "voes_kachel_home.tif"),
+            overwrite=TRUE)
 toc()
 ```
 
-
-
-```{}
-e <- ext(-8000,-7000,314000,315000)
-voes_1 <-
-  crop(voeslau_ober,e)
-```
 ```{r}
-voes_1 |>
-  plot()
-```
-```{r}
-voes_1 |>
-  writeRaster(path(here(),"for_stl",
-                   "voes_1.tif"),
-              overwrite=TRUE
-  )
+voes_kachel_home |> plot()
 ```
 
+```{r}
+voeslau_ober |>
+  ext() -> voes_ext
+c(xmin(voes_ext),
+  xmax(voes_ext),
+  ymin(voes_ext),
+  ymax(voes_ext))
+```
