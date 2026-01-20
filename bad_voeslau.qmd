@@ -17,6 +17,7 @@ suppressPackageStartupMessages({
   library(curl)
   library(terra)
   library(rmapshaper)
+  library(tictoc)
 })
 ```
 
@@ -100,14 +101,18 @@ noe_ober_31259 |>
 ```
 
 ```{r}
+tic()
 noe_ober_31259 |>
   project("EPSG:31256") ->
   noe_ober_31256
+toc()
 work_dir <- path(here(),"raster_data","oberflaeche","work")
 dir_create(work_dir)
+tic()
 writeRaster(noe_ober_31256,
             path(work_dir,
                  "noe_ober_31256.tif"))
+toc()
 ```
 
 ```{r}
@@ -119,10 +124,12 @@ noe_ober_31256 |>
 
 
 ```{r}
+tic()
 r_crop <- crop(noe_ober_31256,border_31256)
 voeslau_ober <- mask(r_crop,border_31256)
 voeslau_ober |>
   writeRaster(path(work_dir,"voeslau_ober.tif"))
+toc()
 ```
 
 
