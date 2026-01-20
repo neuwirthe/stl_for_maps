@@ -60,6 +60,7 @@ border |>
   border_4326
 ext(border_4326)  
 ```
+## Gelände
 
 ```{r}
 noe_raster_31256 <-
@@ -82,22 +83,24 @@ voeslau_raster |>
               overwrite=TRUE)
 ```
 
-Peojektion braucht mehrere Minuten
+## Oberfläche
+
+Projektion braucht mehrere Minuten
 
 ```{r}
 rast(path(here(), "raster_data", "oberflaeche", "oesterreich",
           "ALS_DTM_CRS3035RES50000mN2750000E4750000.tif")) ->
-  noe_31259
+  noe_ober_31259
 ```
 
 ```{r}
-noe_31259 |> 
+noe_ober_31259 |> 
   crs() |>
   cat()
 ```
 
 ```{r}
-noe_31259 |>
+noe_ober_31259 |>
   project("EPSG:31256") ->
   noe_raster_31256
 ```
