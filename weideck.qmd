@@ -1,0 +1,75 @@
+---
+title: "weideck"
+format: html
+editor: visual
+---
+
+
+
+```{r}
+suppressPackageStartupMessages({
+  library(tidyverse)
+  library(readxl)
+  library(scales)
+  library(fs)
+  library(here)
+  library(sf)
+  library(curl)
+  library(terra)
+  library(rmapshaper)
+  library(tictoc)
+  library(tidyterra)  
+})
+```
+
+```{r}
+source(path(here(),"utils","utils.R"))
+```
+weideck koordinaten epsg 4326
+
+48.244944201064776, 16.09925210202847
+
+```{r}
+c(16.09925210202847, 48.244944201064776) |>
+crs_transform("EPSG:4326","EPSG:3035")
+```
+```{r}
+rast(path(here(), "raster_data", "oberflaeche", "oesterreich",
+          "ALS_DSM_CRS3035RES50000mN2800000E4750000.tif")) ->
+  wien_sw_3035
+```
+
+
+```{r}
+get_crs(wien_sw_3035)
+ext(wien_sw_3035)
+```
+
+
+Kleinerer Ausschnitt 1x1km
+
+```{r}
+xcenter <- 4773620 
+ycenter <- 2811089
+xmin <- xcenter-500
+xmax <- xcenter+500
+ymin <- ycenter-500
+ymax <- ycenter+500
+e <- ext(xmin, xmax, ymin, ymax)  # SpatExtent
+e
+ext(e)
+```
+
+```{r}
+crop(wien_sw_3035,e) ->
+  weideck
+weideck |>
+  plot()
+```
+```{r}
+weideck |>
+writeRaster(path(here(), "for_stl",
+                 "weideck.tif"))
+```
+
+

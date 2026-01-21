@@ -8,6 +8,10 @@ Damit kann man Reliefs von Gebieten erzeugen
 Das Projekt is work in progress,    
 **Anregungen werden gerne angenommen**
 
+<font color="red">
+Die Beispiele zum Umgang mit den Rastern werden denächst verfeinert.
+Viele der Projektionen, die derzeit gemacht werden, sind unnötig.
+</font>
 
 ## Datenquellen
 
