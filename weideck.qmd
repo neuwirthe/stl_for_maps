@@ -69,7 +69,7 @@ weideck |>
 ```{r}
 weideck |>
 writeRaster(path(here(), "for_stl",
-                 "weideck.tif"))
+                 "weideck_3035.tif"))
 ```
 
 

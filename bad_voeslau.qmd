@@ -53,6 +53,10 @@ verwaltungsgrenzen_50 |>
 ```
 
 ```{r}
+get_crs(voeslau_gem)
+```
+
+```{r}
 border <- vect(voeslau_gem)
 ```
 
@@ -74,6 +78,8 @@ border |>
 ext(border_4326) 
 get_crs(border_4326)
 ```
+
+
 ## Gelände
 
 ```{r}
@@ -99,16 +105,21 @@ voeslau_raster |>
 
 ## Oberfläche
 
-Projektion braucht mehrere Minuten
+```{r}
+border |>
+  project("EPSG:3035") ->
+  border_3035
+```
+
 
 ```{r}
 rast(path(here(), "raster_data", "oberflaeche", "oesterreich",
           "ALS_DSM_CRS3035RES50000mN2750000E4750000.tif")) ->
-  noe_ober_3035
-  get_crs(noe_ober_3035)
+  noe_sw_raster_3035
+  get_crs(noe_sw_raster_3035)
 ```
 
-```{r}
+```{}
 tic()
 noe_ober_3035 |>
   project("EPSG:31256") ->
@@ -124,18 +135,22 @@ writeRaster(noe_ober_31256,
 toc()
 ```
 
-```{r}
+```{}
 get_crs(noe_ober_31256)
 ```
 
+```{}
+border_31235
+```
 
 
 ```{r}
+work_dir <- dir_create(path(here(), "for_stl"))
 tic()
-r_crop <- crop(noe_ober_31256,border_31256)
-voeslau_ober <- mask(r_crop,border_31256)
-voeslau_ober |>
-  writeRaster(path(work_dir,"voeslau_ober.tif"),
+r_crop <- crop(noe_sw_raster_3035,border_3035)
+voeslau_ober_3035 <- mask(r_crop,border_3035)
+voeslau_ober_3035 |>
+  writeRaster(path(work_dir,"voeslau_ober_3035.tif"),
               overwrite=TRUE)
 toc()
 ```
@@ -149,32 +164,32 @@ Rechteck 1x1km definieren
 
 ```{r}
 c(16.207, 47.96 ) |>
-  crs_transform("EPSG:4326","EPSG:31256") -> xx
+  crs_transform("EPSG:4326","EPSG:3035") -> xx
 xx
 c(xx,xx+1000) -> xx
   ext(xx[1],xx[3],xx[2],xx[4]) ->
-    kachel_ext
+    kachel_3035
 ```
 ```{r}
 tic()
-voeslau_ober |>
-   crop(kachel_ext) ->
-  voes_kachel_home
-voes_kachel_home |>
-writeRaster(path(here(),"for_stl", "voes_kachel_home.tif"),
+voeslau_ober_3035 |>
+   crop(kachel_3035) ->
+  voes_kachel_home_3035
+voes_kachel_home_3035 |>
+writeRaster(path(here(),"for_stl", "voes_kachel_home_3035.tif"),
             overwrite=TRUE)
 toc()
 ```
 
 ```{r}
-voes_kachel_home |> plot()
+voes_kachel_home_3035 |> plot()
 ```
 
+
 ```{r}
-voeslau_ober |>
-  ext() -> voes_ext
-c(xmin(voes_ext),
-  xmax(voes_ext),
-  ymin(voes_ext),
-  ymax(voes_ext))
+voes_kachel_home_3035 |>
+writeRaster(path(work_dir, 
+                 "voes_kachel_home_3035.tif"),
+            overwrite=TRUE)
 ```
+
