@@ -1,0 +1,162 @@
+---
+title: "Kritzendorf"
+format: html
+editor: visual
+---
+
+```{r}
+suppressPackageStartupMessages({
+  library(tidyverse)
+  library(readxl)
+  library(scales)
+  library(fs)
+  library(here)
+  library(sf)
+  library(curl)
+  library(terra)
+  library(rmapshaper)
+  library(tictoc)
+  library(tidyterra)  
+})
+```
+
+```{r}
+source(path(here(),"utils","utils.R"))
+```
+
+```{r}
+load(path(here(),"vector_data", "verwaltungsgrenzen",
+          "verwaltungsgrenzen_50.RData"))
+```
+
+```{r}
+verwaltungsgrenzen_50 |>
+get_crs()
+```
+Kritzendorf ist eine Katastralgemeinde der Gemeinde Klosterneuburg
+
+```{r}
+verwaltungsgrenzen_50 |>
+  filter(PG=="Klosterneuburg") |>
+  filter(KG=="Kritzendorf") ->
+  kat_kritz
+```
+```{r}
+get_crs(kat_kritz)
+border <- vect(kat_kritz)
+project(border, "EPSG:4326") ->
+  border_4326
+ext(border_4326)
+```
+
+
+N2800000 E4750000
+
+```{r}
+rast(path(here(), "raster_data", "oberflaeche", "oesterreich",
+          "ALS_DSM_CRS3035RES50000mN2800000E4750000.tif")) ->
+  um_kritz_3035
+  get_crs(noe_ober_3035)
+  project(um_kritz_3035,"EPSG:4326") ->
+    um_kritz_4326
+```
+
+```{r}
+dir_create(path(here(), "work"))
+um_kritz_4326 |>
+  writeRaster(path=here() ,"work", "um_kritz_4326.tif")
+```
+
+
+```{r}
+um_kritz_4326 |>
+  ext()
+```
+```{r}
+```
+
+```{r}
+tic()
+um_kritz_3035 |>
+  project("EPSG:31256") ->
+  um_kritz_31256
+toc()
+work_dir <- path(here(),"raster_data","oberflaeche","work")
+dir_create(work_dir)
+tic()
+writeRaster(um_kritz_31256,
+            path(work_dir,
+                 "um_kritz_31256.tif"),
+            overwrite=TRUE)
+toc()
+```
+```{r}
+ext(um_kritz_31256)
+```
+```{r}
+crop(um_kritz_4326,border_4326) ->
+  r_crop
+mask(r_crop, border_4326) ->
+  kritz_ober_4326
+```
+
+```{r}
+kritz_ober_4326 |>
+  ext()
+```
+
+48.323999360791476, 16.309018712878277
+
+
+48.323755819037544, 16.308785443781925
+
+
+```{r}
+kritz_ober_4326 |>
+    project("EPSG:31256") ->
+  kritz_ober_31256
+```
+
+```{r}
+kritz_ober_31256 |>
+  plot()
+```
+
+
+```{r}
+ext(border_4326)
+ext(um_kritz_4326)
+```
+Lokalisation eines Punktes
+
+48.324373500741856, 16.307042687650327
+
+```{r}
+manfred_4326 <-
+  cbind(x=16.307042687650327, y=48.324373500741856) |>
+  vect(type="points", crs="EPSG:4326")
+manfred_4326 |>
+  project("EPSG:31256") ->
+  manfred_31256
+```
+
+```{r}
+manfred_4326
+```
+
+```{r}
+plot(kritz_ober_31256) 
+points(manfred_31256, col = "red", pch=10) 
+```
+
+
+```{r}
+
+```
+
+
+```{r}
+ext(border_31256)
+ext(um_kritz_31256)
+```
+

@@ -1,8 +1,22 @@
 # Koordinatentransformation
 
+get_crs <- function(obj){
+  x <- crs(obj, describe=TRUE)  
+  paste0(x$name, " , ",x$authority, ":", x$code)
+}  
+  
+crs_transform <- function(v,from_epsg, to_epsg){
+  xy <- cbind(x=v[1],y=v[2]) 
+  p   <- vect(xy, type = "point", crs = from_epsg)
+  p_wgs <- project(p, to_epsg)
+  p_wgs |> ext() -> eee
+  c(xmin(eee),
+    ymin(eee)
+  )
+}
+
 aut2wgs <- function(v,v2=NULL){
   if(is.null(v2)){  
-    xy <- cbind(x=v[1],y=v[2]) 
   } else {
     xy <- cbind(x=v,y=v2)  
   }
@@ -29,3 +43,12 @@ wgs2aut <- function(v,v2=NULL){
   )
 }
 
+flat_obj <- function(obj, val=1){
+  obj |>
+    values() |>
+    (\(x)ifelse(is.na(x),NA,1))() ->
+    vals
+  xxx <- obj
+  r_flat <- setValues(xxx,vals)
+  r_flat  
+}  

@@ -67,7 +67,6 @@ ist ein Workflow zum erzeugen von `tif` Datei, die in `QGIS`
 in eine `STL` Datei konvertiert werden können.    
 Diese Dateien werden im Folder `for_stl` abgelegt.
 
-
 Es gibt dann ein Geländemodell der ganzen Gemeinde und ein Oberflächenmodell
 des Stadtzentrums
 
@@ -77,4 +76,8 @@ und mit `Raster -> DEMto3D` kann man die `stl` Datei für den 3D-Drucker
 generieren.
 
 
+In utils/utils.R gibt es Funktionen zum Umgang mit Werten
+verschieden Koordinatenststemen (crs, coordinate reference system).
+Damit kann z.B. WGS 84 (= EPSG:4326) Koordinaten aus  Google maps
+in andere Koordinatensystem umrechnen.
 

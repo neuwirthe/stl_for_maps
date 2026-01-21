@@ -4,9 +4,10 @@ format: html
 editor: source
 ---
 
+## Erster Bezirk
 
 ```{r}
-suppressPackageStartupMessages({
+ suppressPackageStartupMessages({
   library(tidyverse)
   library(readxl)
   library(scales)
@@ -15,24 +16,30 @@ suppressPackageStartupMessages({
   library(sf)
   library(terra)
   library(rmapshaper)
+  library(tictoc)
 })
 ```
 
 ```{r}
-load(path(here(),"vector_data", "verwaltungsgrenzen", "verwaltungsgrenzen_50.RData"))
+source(path(here(), "utils", "utils.R"))
 ```
 
 
 ```{r}
 wien_borders <-
   st_read(
-    path(here(),"vector_data", "verwaltungsgrenzen", "BEZIRKSGRENZEOGD",
+    path(here(),"vector_data", "verwaltungsgrenzen", "wien" , "BEZIRKSGRENZEOGD",
     "BEZIRKSGRENZEOGDPolygon.shp"))
 ```
+
 ```{r}
+wien_borders |>
+  filter(BEZNR==1) ->
+  erster_border
+#  st_write("erster.shp")
 erster_border |>
-  filter(BEZNR==1) |>
-  st_write("erster.shp")
+  ggplot() +
+  geom_sf()
 ```
 
 
@@ -42,28 +49,7 @@ erster <- vect("erster.shp") |>
 erster |> plot()
 ```
 
-```{r}
-verwaltungsgrenzen_50 |>
-  filter(BKZ=="900") |>
-  pull()
-  
-  group_by(GKZ) |>
-  summarise(geometry=st_union(geometry)) ->
-  wien_erster_shp
-st_write(wien_erster_shp,"wien_erster.shp")
-```
 
-
-
-```{r}
-wien_border_raw <-
-  vect("wien_erster.shp")
-project(wien_border_raw,"EPSG:31256") ->
-  wien_border
-```
-```{r}
-wien_b
-```
 
 ```{r}
 wien_353 <-
@@ -73,11 +59,22 @@ wien_354 <-
 ```
 
 ```{r}
+tic()
+dir_create(path(here(), "work"))
 wien_erster_raw <-
   merge(wien_353, wien_354) |>
 #  project("EPSG:4326")
   project("EPSG:31256")
-crs(wien_erster_raw)
+get_crs(wien_erster_raw)
+wien_erster_raw |>
+writeRaster(path(here(), "work", 
+                 "wien_erster_raw_31256.tif"),
+            overwrite=TRUE)
+toc()
+```
+```{r}
+erster_border |>
+  get_crs()
 ```
 
 ```{r}
@@ -92,9 +89,85 @@ r_crop |> plot()
 erster_for_stl <- mask(r_crop,erster)
 erster_for_stl |> plot()
 ```
+
 ```{r}
-dir_create(path(here(), "stl"))
+erster_for_stl |> class()
+```
+
+
+```{r}
+ext(erster_for_stl)
+```
+
+```{r}
+dir_create(path(here(), "for_stl"))
 erster_for_stl |>
-writeRaster(path(here(),"stl", "erster_for_stl.tif"))
+writeRaster(path(here(),"for_stl", "erster_for_stl.tif"),
+            overwrite=TRUE)
+```
+
+In QGIS kann man dieses tif einlesen, aber daraus ein einziges stl zu machen klappt nicht,
+das sind zu viele Daten.
+QGIS kann aber beim umwandeln in gestückelte stl erzeugen.
+
+
+verflache object, erhalte dabei Grenzen
+
+
+```{r}
+flat_obj(erster_for_stl) |>
+  plot()
+```
+
+
+```{r}
+flat(erster_for_stl,1) |>
+  plot()
+```
+
+```{r}
+r_flat |> plot()
+```
+
+```{r}
+poly <- as.polygons(erster_for_stl, dissolve=TRUE)
+poly |> str()
+plot(poly)
+```
+
+```{r}
+library(terra)
+library(spatstat.geom)
+
+r <- erster_for_stl   # 1 Layer, metrisches CRS o.ä.
+
+# Werte als Matrix (Zeilen = y, Spalten = x)
+m <- as.matrix(r, wide = TRUE)
+
+# Koordinatenachsen aus terra holen
+xr <- xFromCol(r, 1:ncol(r))   # x-Koordinaten der Spalten
+yr <- yFromRow(r, 1:nrow(r))   # y-Koordinaten der Zeilen
+
+# spatstat-Pixelimage
+Z <- im(m, xcol = xr, yrow = yr)
+
+```
+```{r}
+# Matrix + Koordinaten aus dem im-Objekt
+m2  <- as.matrix(Z)
+xr2 <- Z$xcol
+yr2 <- Z$yrow
+
+# neues terra-Raster mit gleicher Geometrie
+r2 <- rast(
+  ncols = length(xr2),
+  nrows = length(yr2),
+  xmin  = min(xr2),
+  xmax  = max(xr2),
+  ymin  = min(yr2),
+  ymax  = max(yr2)
+)
+values(r2) <- as.vector(m2[nrow(m2):1, ])  # ggf. Zeilenrichtung anpassen
+r2 |> plot()
 ```
 
