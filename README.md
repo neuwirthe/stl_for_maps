@@ -1,11 +1,19 @@
-# stl from maps
+# Produktion von STL Dateien aus Geodaten von Österreich
+Autor: Erich Neuwirth
 
-Produktion vn STL dateien aus Geodaten von Österreich
+Damit kann man Reliefs von Gebieten erzeugen
 
+
+
+Das Projekt is work in progress,    
+**Anregungen werden gerne angenommen**
+
+
+## Datenquellen
 
 Wir verwenden mehrere Datenquellen
 
-## Vektordaten der Verwaltungsgrenzen      
+### Vektordaten der Verwaltungsgrenzen      
 (enthält Katastralgemeinden, Gemeinden, Politischen Bezirken usw.)
 Die Verwendung wird in den Beispieldateien illustriert.
 
@@ -24,7 +32,7 @@ https://www.data.gv.at/datasets/1a22d558-544a-46c1-95b9-baa77d2bb485?locale=de
 
 https://nextcloud.bev.gv.at/nextcloud/public.php/dav/files/yc7BpiibREyFrqH
 
-## Geländedateien (DTM = Digital Terrain Model)
+### Geländedateien (DTM = Digital Terrain Model)
 (ohne Gebäude und Vegetation) (DTM = Digital Terrain Model)
 
 #### Österreich 10m 
@@ -36,7 +44,7 @@ in Kacheln
 https://www.bev.gv.at/Services/Produkte/Digitales-Gelaendehoehenmodell/ALS-Hoehenraster.html
 siehe beiliegende Datei `ALS_Kachelübersicht.pdf`
 
-## Oberflächendateien (DSM = Digital Surface Model)
+### Oberflächendateien (DSM = Digital Surface Model)
 https://www.bev.gv.at/Services/Produkte/Digitales-Oberflaechenmodell/Digitales-Oberflaechenmodell.html
 
 #### Wien 0,5m
@@ -53,7 +61,7 @@ https://www.data.gv.at/datasets?query=DTM+&locale=de&page=1
 
 
 
-Workflow
+## Workflow
 
 Zum Einrichten aller Daten
 `setup.qmd`    
