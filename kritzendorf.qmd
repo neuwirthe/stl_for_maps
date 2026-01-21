@@ -49,9 +49,6 @@ project(border, "EPSG:4326") ->
 ext(border_4326)
 ```
 
-
-N2800000 E4750000
-
 ```{r}
 rast(path(here(), "raster_data", "oberflaeche", "oesterreich",
           "ALS_DSM_CRS3035RES50000mN2800000E4750000.tif")) ->
@@ -105,12 +102,6 @@ kritz_ober_4326 |>
   ext()
 ```
 
-48.323999360791476, 16.309018712878277
-
-
-48.323755819037544, 16.308785443781925
-
-
 ```{r}
 kritz_ober_4326 |>
     project("EPSG:31256") ->
@@ -129,6 +120,8 @@ ext(um_kritz_4326)
 ```
 Lokalisation eines Punktes
 
+Daten eine Punktes aus Google Maps abgelesen
+
 48.324373500741856, 16.307042687650327
 
 ```{r}
@@ -140,9 +133,8 @@ manfred_4326 |>
   manfred_31256
 ```
 
-```{r}
-manfred_4326
-```
+
+Karte mit Punkt zur Festlegung eines kleineren Aussschnitts
 
 ```{r}
 plot(kritz_ober_31256) 
@@ -150,13 +142,24 @@ points(manfred_31256, col = "red", pch=10)
 ```
 
 
-```{r}
 
+Kleinerer Ausschnitt 1x1km
+
+```{r}
+xmin <- -2500
+xmax <-  xmin + 1000
+ymin <- 353550
+ymax <- ymin + 1000
+e <- ext(xmin, xmax, ymin, ymax)  # SpatExtent
+kritz_small_31256 <- crop(kritz_ober_31256, e)
 ```
 
 
 ```{r}
-ext(border_31256)
-ext(um_kritz_31256)
+kritz_small_31256 |> plot()
+points(manfred_31256,col="red")
+writeRaster(kritz_small_31256,
+            path(here(),"for_stl",
+                 "kritz_small_31256.tif"),
+            overwrite=TRUE)
 ```
-
