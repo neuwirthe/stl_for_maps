@@ -194,3 +194,22 @@ writeRaster(kritz_manfred_3035,
                  "kritz_manfred_3035.tif"),
             overwrite=TRUE)
 ```
+
+
+```{r}
+noe_sw_ober_3035 |>
+  crop(manfred_kachel_3035) |>
+  mask(manfred_kachel_3035) ->
+  kor_kritz_manfred_3035
+```
+
+```{r}
+ kor_kritz_manfred_3035 |>
+   plot()
+writeRaster(kor_kritz_manfred_3035,
+            path(here(),"for_stl",
+                 "kor_kritz_manfred_3035.tif"),
+            overwrite=TRUE)
+
+```
+

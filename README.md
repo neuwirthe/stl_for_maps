@@ -74,7 +74,7 @@ komplett ausführen
 Dann `vektordaten.qmd` und `rasterdaten.qmd` ausführen. Damit weden alle
 benötigten Geo-Dateien installiert.
 
-`voeslau.qmd`      
+`kritzendorf.qmd`      
 ist ein Workflow zum erzeugen von `tif` Datei, die in `QGIS`
 in eine `STL` Datei konvertiert werden können.    
 Diese Dateien werden im Folder `for_stl` abgelegt.
