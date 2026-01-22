@@ -164,14 +164,14 @@ point_to_rect(manfred_point_3035) |> str()
 plot(kritz_ober_3035) 
 points(manfred_point_3035, col = "red", pch=10) 
 lines(
-point_to_rect(manfred_point_3035) |>
+point_to_rect(manfred_point_3035,500,500) |>
   shift(0,110),
 col="red"
 ) 
 ```
 
 ```{r}
-point_to_rect(manfred_point_3035) |>
+point_to_rect(manfred_point_3035,500,500) |>
   shift(0,110) |>
   ext() ->
   manfred_kachel_3035
@@ -201,11 +201,11 @@ noe_sw_ober_3035 |>
   crop(manfred_kachel_3035) |>
   mask(manfred_kachel_3035) ->
   kor_kritz_manfred_3035
+ kor_kritz_manfred_3035 |>
+   plot()
 ```
 
 ```{r}
- kor_kritz_manfred_3035 |>
-   plot()
 writeRaster(kor_kritz_manfred_3035,
             path(here(),"for_stl",
                  "kor_kritz_manfred_3035.tif"),
