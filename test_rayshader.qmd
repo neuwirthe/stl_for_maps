@@ -1,0 +1,46 @@
+---
+title: "test rayshaderstl"
+format: html
+editor: source
+---
+
+```{r}
+library(terra)
+library(rayshader)
+library(rgl)
+
+srtm <- rast("for_stl/kor_kritz_manfred_3035.tif")              # SpatRaster
+elmat <- raster_to_matrix(srtm)      # rayshader helper
+
+```
+
+```{r}
+install.packages("rayshader")
+```
+
+```{r}
+open3d()
+#options(rgl.printRglwidget = TRUE)
+elmat |>
+  sphere_shade(texture = "desert") |>
+  plot_3d(elmat, zscale = 1) 
+  
+
+#obj |> rotate3d(obj, angle = pi/2, x = 1, y = 0, z = 0) ->
+#  rot_obj
+
+#  plot3d(rot_obj)
+
+ render_snapshot()
+
+```
+```{r}
+save_3dprint(
+  filename = "terrain.stl",  # .stl appended if omitted
+  maxwidth = 100,            # in mm (or "5in", etc.)
+  unit     = "mm",
+  rotate   = TRUE
+)
+
+```
+
