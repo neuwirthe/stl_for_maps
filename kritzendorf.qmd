@@ -13,9 +13,9 @@ suppressPackageStartupMessages({
   library(here)
   library(sf)
   library(curl)
+  library(tictoc)
   library(terra)
   library(rmapshaper)
-  library(tictoc)
   library(tidyterra)  
 })
 ```
@@ -23,6 +23,14 @@ suppressPackageStartupMessages({
 ```{r}
 source(path(here(),"utils","utils.R"))
 ```
+
+```{r}
+work_dir <- path(here(),"for_stl")
+dir_create(work_dir)
+```
+
+
+## Grenzen festlegen
 
 ```{r}
 load(path(here(),"vector_data", "verwaltungsgrenzen",
@@ -41,125 +49,148 @@ verwaltungsgrenzen_50 |>
   filter(KG=="Kritzendorf") ->
   kat_kritz
 ```
+
+ogd-10m-at (Österreich Gelände)
+hat EPSG:31287
+
+
 ```{r}
 get_crs(kat_kritz)
 border <- vect(kat_kritz)
-project(border, "EPSG:4326") ->
-  border_4326
-ext(border_4326)
+project(border, "EPSG:31287") ->
+  border_31287
+ext(border_31287)
+get_crs(border_31287)
+border_31287 |>
+  plot()
 ```
+
+ALS_DSM (Österreich Oberfläche)
+hat EPSG:3035
+
+```{r}
+get_crs(kat_kritz)
+border <- vect(kat_kritz)
+project(border, "EPSG:3035") ->
+  border_3035
+ext(border_3035)
+get_crs(border_3035)
+border_3035 |>
+  plot()
+
+```
+
+## Geländemodell
+
+```{r}
+rast(
+path(here(),"raster_data", "gelaende", "oesterreich", "ogd-10m-at",
+     "dhm_at_lamb_10m_2018.tif")) ->
+  oe_gelaende_31287
+get_crs(oe_gelaende_31287)
+ext(oe_gelaende_31287)
+```
+```{r}
+oe_gelaende_31287 |> plot()
+```
+
+
+```{r}
+r_cropped <- crop(oe_gelaende_31287,border_31287)
+kritz_gelaende <- mask(r_cropped,border_31287)
+kritz_gelaende |> plot()
+```
+
+```{r}
+kritz_gelaende |>
+writeRaster(path(work_dir,"kritz_gelaende.tif"),
+            overwrite=TRUE)
+```
+
+## Oberflächenmodell
+
+
+
 
 ```{r}
 rast(path(here(), "raster_data", "oberflaeche", "oesterreich",
           "ALS_DSM_CRS3035RES50000mN2800000E4750000.tif")) ->
-  um_kritz_3035
-  get_crs(noe_ober_3035)
-  project(um_kritz_3035,"EPSG:4326") ->
-    um_kritz_4326
+  noe_sw_ober_3035
+  get_crs(noe_sw_ober_3035)
+```
+```{r}
+noe_sw_ober_3035 |>
+  crop(border_3035) |>
+  mask(border_3035) ->
+  kritz_ober_3035
+  kritz_ober_3035 |>
+    plot()
+
 ```
 
-```{r}
-dir_create(path(here(), "work"))
-um_kritz_4326 |>
-  writeRaster(path=here() ,"work", "um_kritz_4326.tif")
-```
-
-
-```{r}
-um_kritz_4326 |>
-  ext()
-```
-```{r}
-```
-
-```{r}
-tic()
-um_kritz_3035 |>
-  project("EPSG:31256") ->
-  um_kritz_31256
-toc()
-work_dir <- path(here(),"raster_data","oberflaeche","work")
-dir_create(work_dir)
-tic()
-writeRaster(um_kritz_31256,
-            path(work_dir,
-                 "um_kritz_31256.tif"),
-            overwrite=TRUE)
-toc()
-```
-```{r}
-ext(um_kritz_31256)
-```
-```{r}
-crop(um_kritz_4326,border_4326) ->
-  r_crop
-mask(r_crop, border_4326) ->
-  kritz_ober_4326
-```
-
-```{r}
-kritz_ober_4326 |>
-  ext()
-```
-
-```{r}
-kritz_ober_4326 |>
-    project("EPSG:31256") ->
-  kritz_ober_31256
-```
-
-```{r}
-kritz_ober_31256 |>
-  plot()
-```
-
-
-```{r}
-ext(border_4326)
-ext(um_kritz_4326)
-```
-Lokalisation eines Punktes
+#### Lokalisation eines Punktes
 
 Daten eine Punktes aus Google Maps abgelesen
 
 48.324373500741856, 16.307042687650327
 
 ```{r}
-manfred_4326 <-
+manfred_point_3035 <-
   cbind(x=16.307042687650327, y=48.324373500741856) |>
-  vect(type="points", crs="EPSG:4326")
-manfred_4326 |>
-  project("EPSG:31256") ->
-  manfred_31256
+  vect(type="points", crs="EPSG:4326") |>
+  project("EPSG:3035")
 ```
-
 
 Karte mit Punkt zur Festlegung eines kleineren Aussschnitts
 
 ```{r}
-plot(kritz_ober_31256) 
-points(manfred_31256, col = "red", pch=10) 
+plot(kritz_ober_3035) 
+points(manfred_point_3035, col = "red", pch=10) 
+#lines(xx |> terra::shift(0,1000),
+#      col="red")
 ```
 
 
 
-Kleinerer Ausschnitt 1x1km
+
 
 ```{r}
-xmin <- -2500
-xmax <-  xmin + 1000
-ymin <- 353550
-ymax <- ymin + 1000
-e <- ext(xmin, xmax, ymin, ymax)  # SpatExtent
-kritz_small_31256 <- crop(kritz_ober_31256, e)
+point_to_rect(manfred_point_3035) |> str()
+  plot()
 ```
 
 
 ```{r}
-kritz_small_31256 |> plot()
-points(manfred_31256,col="red")
-writeRaster(kritz_small_31256,
+plot(kritz_ober_3035) 
+points(manfred_point_3035, col = "red", pch=10) 
+lines(
+point_to_rect(manfred_point_3035) |>
+  shift(0,110),
+col="red"
+) 
+```
+
+```{r}
+point_to_rect(manfred_point_3035) |>
+  shift(0,110) |>
+  ext() ->
+  manfred_kachel_3035
+```
+
+```{r}
+kritz_ober_3035 |>
+  crop(manfred_kachel_3035) |>
+  mask(manfred_kachel_3035) ->
+  kritz_manfred_3035
+```
+
+
+
+```{r}
+kritz_manfred_3035 |> plot()
+
+writeRaster(kritz_manfred_3035,
             path(here(),"for_stl",
-                 "kritz_small_31256.tif"),
+                 "kritz_manfred_3035.tif"),
             overwrite=TRUE)
 ```

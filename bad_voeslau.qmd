@@ -119,30 +119,6 @@ rast(path(here(), "raster_data", "oberflaeche", "oesterreich",
   get_crs(noe_sw_raster_3035)
 ```
 
-```{}
-tic()
-noe_ober_3035 |>
-  project("EPSG:31256") ->
-  noe_ober_31256
-toc()
-work_dir <- path(here(),"raster_data","oberflaeche","work")
-dir_create(work_dir)
-tic()
-writeRaster(noe_ober_31256,
-            path(work_dir,
-                 "noe_ober_31256.tif"),
-            overwrite=TRUE)
-toc()
-```
-
-```{}
-get_crs(noe_ober_31256)
-```
-
-```{}
-border_31235
-```
-
 
 ```{r}
 work_dir <- dir_create(path(here(), "for_stl"))
@@ -156,30 +132,38 @@ toc()
 ```
 
 ```{r}
-voeslau_ober |> plot()
+voeslau_ober_3035 |> plot()
 ```
 
 Koordinaten (lon, lat) in WGS84=EPSG:4326 in Google Maps abgelesen.
 Rechteck 1x1km definieren
 
-```{r}
-c(16.207, 47.96 ) |>
-  crs_transform("EPSG:4326","EPSG:3035") -> xx
-xx
-c(xx,xx+1000) -> xx
-  ext(xx[1],xx[3],xx[2],xx[4]) ->
-    kachel_3035
+Wohnhaus
+47.96407780137855, 16.215756539710082
+Schloss
+47.965352214053475, 16.21541523349102
+
+
+
+```{r }
+ext_kachel_from_google(16.213, 47.96535,
+                       1000,"EPSG:3035") ->
+  kachel_3035
 ```
+
 ```{r}
 tic()
-voeslau_ober_3035 |>
-   crop(kachel_3035) ->
+crop(
+voeslau_ober_3035,
+kachel_3035) ->
   voes_kachel_home_3035
 voes_kachel_home_3035 |>
 writeRaster(path(here(),"for_stl", "voes_kachel_home_3035.tif"),
             overwrite=TRUE)
 toc()
 ```
+1 Grad NordSüd
+
 
 ```{r}
 voes_kachel_home_3035 |> plot()
