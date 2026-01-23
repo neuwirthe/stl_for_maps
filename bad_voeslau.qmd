@@ -149,6 +149,7 @@ Schloss
 ext_kachel_from_google(16.213, 47.96535,
                        1000,"EPSG:3035") ->
   kachel_3035
+ext(kachel_3035)
 ```
 
 ```{r}

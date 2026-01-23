@@ -89,3 +89,9 @@ point_to_rect <- function(p,x_size=1000,y_size=1000){
   crs(xx) <- get_crs(p)
   xx
 }
+
+get_border <- function(obj){
+  flattened <- classify(r, cbind(-Inf, Inf, 1))      # everything = 1
+  as.polygons(flattened, na.rm = TRUE) |>         # cell polygons[web:108]
+    aggregate()                          # dissolve into one polygon[web:106]
+}

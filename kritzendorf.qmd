@@ -172,9 +172,10 @@ col="red"
 
 ```{r}
 point_to_rect(manfred_point_3035,500,500) |>
-  shift(0,110) |>
+  terra::shift(0,110) |>
   ext() ->
   manfred_kachel_3035
+ext(manfred_kach)
 ```
 
 ```{r}
@@ -211,5 +212,28 @@ writeRaster(kor_kritz_manfred_3035,
                  "kor_kritz_manfred_3035.tif"),
             overwrite=TRUE)
 
+```
+
+
+```{r}
+point_to_rect(manfred_point_3035,1000,1000) |>
+  terra::shift(0,110) |>
+  ext() ->
+  manfred_kachel_3035_large
+ext(manfred_kachel_3035_large)
+```
+
+
+```{r}
+noe_sw_ober_3035 |>
+  crop(manfred_kachel_3035_large) |>
+  mask(manfred_kachel_3035_large) ->
+  kor_kritz_manfred_3035_large
+ kor_kritz_manfred_3035_large |>
+   plot()
+```
+```{r}
+kor_kritz_manfred_3035_large |>
+writeRaster(path(here(), "for_stl", "kor_kritz_manfred_3035_large.tif"))
 ```
 
