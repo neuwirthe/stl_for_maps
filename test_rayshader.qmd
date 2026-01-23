@@ -5,122 +5,107 @@ editor: source
 ---
 
 ```{r}
-library(terra)
-library(rayshader)
-library(rgl)
-library(tictoc)
+suppressPackageStartupMessages({
+  library(fs)
+  library(here)
+  library(terra)
+  library(rayshader)
+  library(rgl)
+  library(tictoc)
+  library(tidyverse)
+})
 ```
 
 1:10000
 1 mm -> 10m 
 
+
 ```{r}
-srtm <- rast("for_stl/erster_for_stl.tif") # SpatRaster
+tif_to_print <- "erster_for_stl"
 ```
 
-```{r}
-library(terra)
-
-e  <- ext(x)                    # SpatExtent from SpatRaster/SpatVector
-ex <- xmin(e);  wx <- xmax(e)
-ey <- ymin(e);  wy <- ymax(e)
-
-mx <- (ex + wx) / 2            # mid x
-my <- (ey + wy) / 2            # mid y
-
-# left lower quarter
-e_ll <- ext(ex, mx, ey, my)
-
-```
 
 ```{r}
-ext(srtm)
-get_crs(srtm)
-
-```
-
-```{r}
-#srtm <- rast("for_stl/kor_kritz_manfred_3035_large.tif") 
-get_crs(srtm) # SpatRaster
-elmat <- raster_to_matrix(srtm)      # rayshader helper
-elmat |> dim()
-elmat |> max(na.rm = T)
-elmat |> min(na.rm = T)
+if(!str_detect(tif_to_print, "\\.tif$")){ 
+  tif_to_print <- paste0(tif_to_print,".tif")
+}
+tif_infile <- path(here(), "tif_for_stl", tif_to_print)
+if(!file_exists(tif_infile)) stop(paste(tif_infile, "missing"))
+raster <- rast(tif_infile) # SpatRaster
 ```
 ```{r}
-srtm -> r
-# optional: reclass or mask so cells of interest are 1, others NA
-r2 <- classify(r, cbind(-Inf, Inf, 1))      # everything = 1
-
-p  <- as.polygons(r2, na.rm = TRUE)         # cell polygons[web:108]
-b  <- aggregate(p)                          # dissolve into one polygon[web:106]
-
-plot(r2)
-lines(b, col = "red", lwd = 2)
-
-
-```
-```{r}
-get_border <- function(obj){
-flattened <- classify(r, cbind(-Inf, Inf, 1))      # everything = 1
-as.polygons(flattened, na.rm = TRUE) |>         # cell polygons[web:108]
-aggregate()                          # dissolve into one polygon[web:106]
+get_border <- function(obj) {
+  flattened <- classify(r, cbind(-Inf, Inf, 1)) # everything = 1
+  as.polygons(flattened, na.rm = TRUE) |> # cell polygons[web:108]
+    aggregate() # dissolve into one polygon[web:106]
 }
 ```
 
-```{r}
-get_border(srtm) |> plot()
-```
-
-```{r}
-elmat_neu <- elmat + 125
-elmat_neu |> max(na.rm = T)
-elmat_neu |> min(na.rm = T)
-```
-```{r}
-elmat <- elmat_neu
-elmat |> str()
-```
-```{r}
-elmat |> dim() -> dims_big
-elmat1 <- elmat[1:floor(dims[1]/2),1:floor(dims[2]/2)]
-elmat1 |> dim()
-elmat <- elmat1
-```
-
-```{}
-srtm <- rast("for_stl/kor_kritz_manfred_3035.tif")              # SpatRaster
-elmat <- raster_to_matrix(srtm)      # rayshader helper
-elmat |> dim()
-elmat |> str()
-```
 
 
 ```{r}
 tic()
+elmat <- raster_to_matrix(tif_infile)
 dim(elmat) ->
   dims
+toc()
+```
 
+
+```{r}
 par3d(windowRect = c(0, 0, dims[1], dims[2]))
 options(rgl.printRglwidget = TRUE)
 elmat |>
   sphere_shade(texture = "desert") |>
-  plot_3d(elmat, zscale = 1) 
- render_snapshot()
+  plot_3d(elmat, zscale = 1)
+render_snapshot()
 toc()
 ```
 
 ```{r}
 tic()
-open3d()
-par3d(windowRect = c(0, 0, dims[1], dims[2]))
-plots <- NULL
-elmat |>
+dims <- dim(elmat)
+# par3d(windowRect = c(0, 0, dims[1]/2, dims[2]/2))
+options(rgl.printRglwidget = TRUE)
+elmat[1:(dims[1]/2),1:(dims[2]/2)] |>
   sphere_shade(texture = "desert") |>
-  plot_3d(elmat, zscale = 1)  
-  plots <- htmltools::tagList(plots, rglwidget())
+  plot_3d(elmat[1:(dims[1]/2),1:(dims[2]/2)], zscale = 1)
+render_snapshot()
 toc()
-plots
+```
+
+
+```{r}
+tic()
+dims <- dim(elmat)
+# par3d(windowRect = c(0, 0, dims[1]/2, dims[2]/2))
+options(rgl.printRglwidget = TRUE)
+elmat[1:(dims[1]/2),1:(dims[2]/2)] |>
+  sphere_shade(texture = "desert") |>
+  plot_3d(elmat[1:(dims[1]/2),1:(dims[2]/2)], zscale = 1)
+render_snapshot()
+toc()
+```
+
+
+
+```{r}
+tic()
+ options(rgl.printRglwidget = TRUE)
+ library(rgl)
+# open3d()
+# par3d(windowRect = c(0, 0, dims[1]/2, dims[2]/2)) 
+ elmat_2 <- elmat[1:(dims[1]/2),1:(dims[2]/2)]
+ elmat_2_col <- elmat_2 |>
+ sphere_shade(texture = "desert") 
+  plot_3d(
+    heightmap  = elmat_2,
+    hillshade = elmat_2_col,
+    zscale = 1,
+    windowsize=c(800,800))
+  rglwidget()
+toc()
+
 ```
 
 
@@ -130,11 +115,11 @@ plots
 ```{r}
 tic()
 save_3dprint(
-  filename = "erster_1.stl",  # .stl appended if omitted
-#  filename = "kor_kritz_large.stl",  # .stl appended if omitted
-  maxwidth = max(dims_big[1]/2,dims_big[2]/2)      
-  unit     = "mm",
-  rotate   = TRUE
+  filename = "erster_1.stl", # .stl appended if omitted
+  #  filename = "kor_kritz_large.stl",  # .stl appended if omitted
+  maxwidth = max(dims_big[1] / 2, dims_big[2] / 2),
+  unit = "mm",
+  rotate = TRUE
 )
 toc()
 ```
@@ -143,8 +128,4 @@ toc()
 ```{r}
 file_size("erster_large.stl")
 ```
-
-
-
-
 

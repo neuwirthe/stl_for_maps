@@ -1,0 +1,206 @@
+---
+title: "zeitungen"
+format: html
+editor: source
+---
+
+```{r}
+library(tidyverse)
+```
+
+```{r}
+read_table("
+Anzahl
+27.3
+25.4
+25 
+24.6 
+24.1 
+23.7
+22.6
+21.7
+21.7
+21 
+20.8  
+20
+19.95
+19.4
+18.8 
+18.4
+17.1
+16.8                                                                                          
+15.6
+15.3 
+14.7 
+14.1
+13.5
+12.5
+12.3
+11.72                                                                                 
+10.9
+10.2
+10.43
+") |>
+  mutate(Jahr=seq_along(Anzahl)+1990) |>
+  mutate(Jahr=c(seq(1991,2003,by=2),seq(2004,2025))) |>
+  select(Jahr,Anzahl) |>
+#  mutate(Abnahme=c(NA,diff(Anzahl))) 
+  as_tibble() ->
+  zeitungen
+```
+
+```{r}
+zeitungen
+```
+
+-0.0095*х^2 + 37.528*x - 37142
+
+```{r}
+x <- 1990
+fun <- function(x){return(-0.0095*х^2 + 37.528*x - 37142)}
+fun <- function(x){-0.0095*x^2+37.528*x - 37142}
+fun0 <- function(x){-0.0095*x^2+37.528*x - 26}
+fun0(2:20)
+```
+
+```{r}
+fun(1992)
+```
+
+```{r}
+fun2 <- function(x){37.528*x - 37142}
+fun(1992:2010)
+fun3 <- function(x){-0.0095*2*x+37.528}
+fun3(1992:2010)
+fun3(0:18)
+```
+
+```{r}
+fun_lm <- function(x){22.995-10.073*x-1.255*x^2 }
+fun_lm(1992)
+```
+```{r}
+zeitungen_2
+```
+
+```{r}
+with(zeitungen_2,
+     lm(Anzahl_2 ~ Jahr + I(Jahr^2))) 
+#  model
+#  predict(model,tibble(Jahr=1992:2010))
+```
+```{r}
+model |> coef()
+```
+```{r}
+fit <- lm()
+```
+
+```{r}
+fun_lm <- function(x){-3.714e+04  + 3.753e+01*x  -9.473e-03*x^2}
+
+fun_lm(1992:2011)
+```
+ -0.0095*х^2 + 37.528*x - 37142
+ 
+ -0,0095х^2 + 37,528x - 37142
+
+
+```{r}
+read_table("
+Jahr Anzahl_2
+1992                        26
+
+1993                   25.9
+
+1994                   25.8
+
+1995                   25.5
+
+1996                   25.2
+
+1997                        25
+
+1998                   24.6
+
+1999                   24.1
+
+2000                   23.9
+
+2001                   23.8
+
+2002                   23.2
+
+2003                   22.6
+
+2004                   22.1
+
+2005                   21.7
+
+2006                   21.2
+
+2007                   20.8
+
+2008                  20.4
+
+2009                   19.9
+
+2010                   19.4
+
+2011                    18.8
+") ->
+  zeitungen_2
+zeitungen_2 |>
+  clipr::write_clip()
+```
+
+```{r}
+with(zeitungen_2,
+     lm(Anzahl_2 ~ poly(Jahr,2, raw=TRUE))) |>
+  coef()
+```
+```{r}
+with(zeitungen_2,
+     lm(Anzahl_2 ~ Jahr + I(Jahr^2))) ->
+  model2
+model2 |>
+ fitted
+model2 |>
+ fitted
+
+```
+
+```{r}
+zeitungen |>
+  ggplot(aes(Jahr,Anzahl)) +
+  geom_line() + 
+  geom_line(data=zeitungen_2, aes(y=Anzahl_2),
+            color="red") + 
+  scale_y_continuous(limits=c(0,NA)) + 
+  theme_minimal()
+
+```
+
+
+```{r}
+zeitungen_2 |>
+  mutate(Abnahme=c(NA,diff(Anzahl_2))) |>
+  ggplot(aes(Jahr,Abnahme)) +
+  geom_line() +
+  scale_y_continuous(limits=c(NA,0)) + theme_minimal()
+
+```
+
+
+```{r}
+zeitungen |>
+  ggplot(aes(Jahr,Anzahl)) +
+  geom_line() +
+  geom_line(data=zeitungen_2,aes(y=Anzahl_2),color="red") +
+  theme_minimal() +
+  scale_y_continuous(limits=c(0,NA))
+```
+
+
+
+https://de.statista.com/statistik/daten/studie/72084/umfrage/verkaufte-auflage-von-tageszeitungen-in-deutschland/

@@ -1,0 +1,115 @@
+---
+title: "test2"
+format: html
+editor: source
+---
+
+
+```{r}
+suppressPackageStartupMessages({
+  library(fs)
+  library(here)
+  library(terra)
+  library(rayshader)
+  library(rgl)
+  library(tictoc)
+  library(tidyverse)
+})
+```
+
+1:10000
+1 mm -> 10m 
+
+
+```{r}
+tif_to_print <- "erster_for_stl"
+```
+
+
+```{r}
+if(!str_detect(tif_to_print, "\\.tif$")){ 
+  tif_to_print <- paste0(tif_to_print,".tif")
+}
+tif_infile <- path(here(), "tif_for_stl", tif_to_print)
+if(!file_exists(tif_infile)) stop(paste(tif_infile, "missing"))
+raster <- rast(tif_infile) # SpatRaster
+```
+
+
+```{r}
+tic()
+elmat <- raster_to_matrix(tif_infile)
+dim(elmat) ->
+  dims
+dims
+toc()
+```
+
+
+
+```{r}
+tic()
+dims <- dim(elmat)
+options(rgl.printRglwidget = TRUE)
+elmat[1:(dims[1]/2),1:(dims[2]/2)] |>
+  sphere_shade(texture = "desert") |>
+  plot_3d(elmat[1:(dims[1]/2),1:(dims[2]/2)], zscale = 1)
+render_snapshot()
+toc()
+```
+
+
+
+
+```{r}
+tic()
+options(rgl.useNULL = TRUE, 
+        rgl.printRglwidget = TRUE)
+ elmat_2 <- resize_matrix(elmat,scale = 0.25)
+ elmat_2_col <- elmat_2 |>
+   sphere_shade(texture = "desert")
+ 
+
+ plot_3d(
+  heightmap = elmat_2,
+  hillshade = elmat_2_col,
+  zscale    = 4 ,
+  windowsize = c(800, 800) #,
+)
+ rglwidget()
+toc()
+```
+
+
+```{r}
+library(rayshader)
+library(rgl)
+
+# Empfohlene Optionen für RStudio
+options(
+  rgl.useNULL       = TRUE,   # kein externes X11-Fenster, nur WebGL
+  rgl.printRglwidget = TRUE   # rgl-Szene automatisch als Widget anzeigen
+)
+
+# Beispiel-Heightmap (eingebaut in rayshader)
+elmat <- montereybay          # Matrix mit Höhenwerten [web:36][web:171]
+
+elmat |> dim()
+
+# Textur / Hillshade vorbereiten
+hill <- elmat |>
+  sphere_shade(texture = "imhof1", zscale = 50) |>
+  add_shadow(ray_shade(elmat, zscale = 50), max_darken = 0.4) |>
+  add_shadow(ambient_shade(elmat, zscale = 50), max_darken = 0.3)
+                              
+# 3D-Plot erzeugen – öffnet rgl-Szene
+plot_3d(
+  heightmap = elmat,
+  hillshade = hill,
+  zscale    = 50,
+  windowsize = c(800, 800),
+  solid     = TRUE,
+  shadow    = TRUE
+)
+rglwidget()
+```

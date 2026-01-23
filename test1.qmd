@@ -1,0 +1,50 @@
+---
+title: "test1"
+format: html
+editor: visual
+---
+
+
+```{r}
+library(rgl)
+options(rgl.printRglwidget = TRUE)
+
+plot3d(rnorm(100), rnorm(100), rnorm(100), col = "red")
+# beim „Printen“ des Ergebnisses wird automatisch rglwidget() aufgerufen
+
+```
+
+
+```{r}
+library(rayshader)
+library(rgl)
+
+# Empfohlene Optionen für RStudio
+options(
+  rgl.useNULL       = TRUE,   # kein externes X11-Fenster, nur WebGL
+  rgl.printRglwidget = TRUE   # rgl-Szene automatisch als Widget anzeigen
+)
+
+# Beispiel-Heightmap (eingebaut in rayshader)
+elmat <- montereybay          # Matrix mit Höhenwerten [web:36][web:171]
+
+# Textur / Hillshade vorbereiten
+hill <- elmat |>
+  sphere_shade(texture = "imhof1", zscale = 50) |>
+  add_shadow(ray_shade(elmat, zscale = 50), max_darken = 0.4) |>
+  add_shadow(ambient_shade(elmat, zscale = 50), max_darken = 0.3)
+                              
+# 3D-Plot erzeugen – öffnet rgl-Szene
+plot_3d(
+  heightmap = elmat,
+  hillshade = hill,
+  zscale    = 50,
+  windowsize = c(800, 800),
+  solid     = TRUE,
+  shadow    = TRUE
+)
+rglwidget()
+
+```
+
+
